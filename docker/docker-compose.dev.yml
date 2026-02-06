@@ -1,97 +1,77 @@
-version: '3.8'
+# Dev overrides: hot-reload volumes, exposed ports, runserver, all Django services + Celery
+# Usage: docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d
+
+version: '3.9'
 
 services:
   auth-service:
-    build:
-      context: ../services/auth-service
-      dockerfile: Dockerfile
     env_file:
+      - env/.env.common
       - env/.env.dev
+    volumes:
+      - ../services/auth-service/src:/app
+      - ../services/auth-service/entrypoint.sh:/app/entrypoint.sh
     ports:
       - "8001:8000"
-    volumes:
-      - ../services/auth-service:/app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     command: python manage.py runserver 0.0.0.0:8000
+    profiles:
+      - dev
 
   stream-service:
-    build:
-      context: ../services/stream-service
-      dockerfile: Dockerfile
     env_file:
+      - env/.env.common
       - env/.env.dev
+    volumes:
+      - ../services/stream-service/src:/app
+      - ../services/stream-service/entrypoint.sh:/app/entrypoint.sh
     ports:
       - "8002:8000"
-    volumes:
-      - ../services/stream-service:/app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    command: python manage.py runserver 0.0.0.0:8000
+    profiles:
+      - dev
 
   chat-service:
-    build:
-      context: ../services/chat-service
-      dockerfile: Dockerfile
     env_file:
+      - env/.env.common
       - env/.env.dev
+    volumes:
+      - ../services/chat-service/src:/app
+      - ../services/chat-service/entrypoint.sh:/app/entrypoint.sh
     ports:
       - "8003:8000"
-    volumes:
-      - ../services/chat-service:/app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    command: python manage.py runserver 0.0.0.0:8000
+    profiles:
+      - dev
 
   notification-service:
-    build:
-      context: ../services/notification-service
-      dockerfile: Dockerfile
     env_file:
+      - env/.env.common
       - env/.env.dev
+    volumes:
+      - ../services/notification-service/src:/app
+      - ../services/notification-service/entrypoint.sh:/app/entrypoint.sh
     ports:
       - "8004:8000"
-    volumes:
-      - ../services/notification-service:/app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+    command: python manage.py runserver 0.0.0.0:8000
+    profiles:
+      - dev
 
   celery-worker:
-    build:
-      context: ../services/notification-service
-      dockerfile: Dockerfile
     env_file:
+      - env/.env.common
       - env/.env.dev
     volumes:
-      - ../services/notification-service:/app
-    depends_on:
-      - notification-service
-      - rabbitmq
-    command: celery -A config.celery worker --loglevel=info
+      - ../services/notification-service/src:/app
+      - ../services/notification-service/entrypoint.sh:/app/entrypoint.sh
+    # Optimized for dev as requested
+    command: celery -A notification_service.config.celery:app worker --pool=solo --loglevel=info
+    profiles:
+      - dev
 
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    # Resolve 80:80 conflict or just map alternate port
     ports:
-      - "8000:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-    depends_on:
-      - auth-service
-      - stream-service
-      - chat-service
-      - notification-service
+      - "8080:80"
+      - "8443:443"
+    profiles:
+      - dev

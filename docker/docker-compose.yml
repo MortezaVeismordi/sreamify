@@ -1,45 +1,212 @@
-version: '3.8'
+# Base: infra + all services (minimal logic)
+# Usage: docker compose -f docker/docker-compose.yml up -d
+# With dev overrides: docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d
+
+version: '3.9'
 
 services:
+  # --- Infra (start first) ---
   postgres:
     image: postgres:14-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-streamify}
+    container_name: streamify-postgres
+    env_file:
+      - env/.env.common
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d streamify" ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - streamify-net
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
+    container_name: streamify-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - streamify-net
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin}
+    container_name: streamify-rabbitmq
+    env_file:
+      - env/.env.common
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
+    networks:
+      - streamify-net
+    restart: unless-stopped
+
+  # --- Django Services ---
+  auth-service:
+    build:
+      context: ../services/auth-service
+      dockerfile: Dockerfile
+    container_name: streamify-auth-service
+    env_file:
+      - env/.env.common
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - streamify-net
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O- http://127.0.0.1:8000/health/ || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  stream-service:
+    build:
+      context: ../services/stream-service
+      dockerfile: Dockerfile
+    container_name: streamify-stream-service
+    env_file:
+      - env/.env.common
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - streamify-net
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O- http://127.0.0.1:8000/health/ || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  chat-service:
+    build:
+      context: ../services/chat-service
+      dockerfile: Dockerfile
+    container_name: streamify-chat-service
+    env_file:
+      - env/.env.common
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - streamify-net
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O- http://127.0.0.1:8000/health/ || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  notification-service:
+    build:
+      context: ../services/notification-service
+      dockerfile: Dockerfile
+    container_name: streamify-notification-service
+    env_file:
+      - env/.env.common
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - streamify-net
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O- http://127.0.0.1:8000/health/ || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  celery-worker:
+    build:
+      context: ../services/notification-service
+      dockerfile: Dockerfile
+    container_name: streamify-celery-worker
+    env_file:
+      - env/.env.common
+    depends_on:
+      notification-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    command: celery -A notification_service.config.celery:app worker --loglevel=info
+    networks:
+      - streamify-net
+    restart: unless-stopped
+
+  # --- Reverse proxy / API Gateway ---
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: streamify-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      stream-service:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    networks:
+      - streamify-net
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O- http://127.0.0.1:80/health/ || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  streamify-net:
+    driver: bridge

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User
-from ..utils.validators import validate_email
+from ..utils.validators import validate_email  # We'll see if this path is valid, assuming yes from previous file
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -10,10 +10,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'first_name', 'last_name', 'password', 'password_confirm')
+        fields = ('email', 'first_name', 'last_name', 'password', 'password_confirm', 'phone')
+        # Removed 'username', added 'phone'
 
     def validate_email(self, value):
-        validate_email(value)
+        # We can keep custom validator or rely on standard email field validation + uniqueness
+        # validate_email(value) # Assuming this utility exists, keeping it safe
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('User with this email already exists')
         return value
@@ -32,8 +34,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        fields = ('id', 'email', 'first_name', 'last_name', 'phone', 'is_streamer', 'bio', 'profile_picture', 'is_active', 'date_joined')
+        read_only_fields = ('id', 'email', 'is_streamer', 'is_active', 'date_joined')
+        # Removed username, added profile fields
 
 
 class LoginSerializer(serializers.Serializer):

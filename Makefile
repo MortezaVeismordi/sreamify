@@ -12,13 +12,31 @@ help:
 	@echo "  make clean         - Clean up temporary files"
 
 dev-up:
-	docker-compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml --profile dev up -d
 
 dev-down:
-	docker-compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml down
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml --profile dev down
+
+# Base only (postgres + redis + rabbitmq + auth-service + nginx)
+up-base:
+	docker compose -f docker/docker-compose.yml up -d
+
+down-base:
+	docker compose -f docker/docker-compose.yml down
+
+# Production
+prod-up:
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d
+
+prod-down:
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml down
+
+# With monitoring (Prometheus + Grafana)
+monitoring-up:
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.monitoring.yml --profile monitoring up -d
 
 build:
-	docker-compose -f docker/docker-compose.yml build
+	docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml build
 
 test:
 	pytest tests/ --cov --cov-report=html

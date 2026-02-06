@@ -1,0 +1,77 @@
+# Production overrides: replicas, logging, strict env
+# Usage: docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d
+
+version: '3.9'
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  auth-service:
+    env_file:
+      - env/.env.common
+      - env/.env.prod
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+    logging: *default-logging
+    profiles:
+      - prod
+
+  stream-service:
+    env_file:
+      - env/.env.common
+      - env/.env.prod
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+    logging: *default-logging
+    profiles:
+      - prod
+
+  chat-service:
+    env_file:
+      - env/.env.common
+      - env/.env.prod
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+    logging: *default-logging
+    profiles:
+      - prod
+
+  notification-service:
+    env_file:
+      - env/.env.common
+      - env/.env.prod
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+    logging: *default-logging
+    profiles:
+      - prod
+
+  celery-worker:
+    env_file:
+      - env/.env.common
+      - env/.env.prod
+    logging: *default-logging
+    profiles:
+      - prod
+    # Ensure celery restart on failure
+    restart: always
+
+  nginx:
+    deploy:
+      restart_policy:
+        condition: always
+    logging: *default-logging
+    profiles:
+      - prod

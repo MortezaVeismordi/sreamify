@@ -36,7 +36,11 @@ cp docker/env/.env.example docker/env/.env.dev
 
 3. Start services:
 ```bash
+# Full dev stack (all 4 Django services + Celery + infra)
 make dev-up
+
+# Or base only (postgres, redis, rabbitmq, auth-service, nginx)
+make up-base
 ```
 
 4. Run migrations:
@@ -50,6 +54,20 @@ make migrate-all
 - Stream Service: http://localhost:8002
 - Chat Service: http://localhost:8003
 - Notification Service: http://localhost:8004
+
+## Docker Compose
+
+| File | Purpose |
+|------|--------|
+| `docker/docker-compose.yml` | Base: postgres, redis, rabbitmq, auth-service, nginx (version 3.9, healthchecks, named volumes, `streamify-net`) |
+| `docker/docker-compose.dev.yml` | Dev: all Django services + Celery, volume mount for hot-reload, exposed ports, `runserver`; use with `--profile dev` |
+| `docker/docker-compose.prod.yml` | Prod: same services with gunicorn, no code mount, `restart: unless-stopped`, logging options |
+| `docker/docker-compose.monitoring.yml` | Prometheus + Grafana; use with `--profile monitoring` |
+
+- **Base only:** `make up-base` or `docker compose -f docker/docker-compose.yml up -d`
+- **Full dev:** `make dev-up` (uses dev profile)
+- **Prod:** `make prod-up`
+- **With monitoring:** `make monitoring-up` (after base or dev is up)
 
 ## Project Structure
 
