@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-{{ .Values.services.auth.name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-{{ .Values.services.auth.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-{{ .Values.services.auth.name }}
+    spec:
+      containers:
+      - name: {{ .Values.services.auth.name }}
+        image: "{{ .Values.image.repository }}/{{ .Values.services.auth.name }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.services.auth.port }}

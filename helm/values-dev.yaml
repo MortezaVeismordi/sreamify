@@ -1,0 +1,19 @@
+replicaCount: 1
+
+image:
+  repository: streamify
+  pullPolicy: Always
+
+services:
+  auth:
+    enabled: true
+    port: 8000
+  stream:
+    enabled: true
+    port: 8000
+  chat:
+    enabled: true
+    port: 8000
+  notification:
+    enabled: true
+    port: 8000

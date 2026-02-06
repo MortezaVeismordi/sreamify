@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package stream;
+
+service StreamService {
+  rpc GetStream(StreamRequest) returns (StreamResponse);
+  rpc ListStreams(ListRequest) returns (ListResponse);
+  rpc CreateStream(CreateRequest) returns (StreamResponse);
+}
+
+message StreamRequest {
+  int32 stream_id = 1;
+}
+
+message StreamResponse {
+  int32 id = 1;
+  string title = 2;
+  string description = 3;
+  int32 user_id = 4;
+  string status = 5;
+}
+
+message ListRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListResponse {
+  repeated StreamResponse streams = 1;
+  int32 total = 2;
+}
+
+message CreateRequest {
+  string title = 1;
+  string description = 2;
+  int32 user_id = 3;
+}

@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ../services/auth-service
+      dockerfile: Dockerfile
+    env_file:
+      - env/.env.dev
+    ports:
+      - "8001:8000"
+    volumes:
+      - ../services/auth-service:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: python manage.py runserver 0.0.0.0:8000
+
+  stream-service:
+    build:
+      context: ../services/stream-service
+      dockerfile: Dockerfile
+    env_file:
+      - env/.env.dev
+    ports:
+      - "8002:8000"
+    volumes:
+      - ../services/stream-service:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  chat-service:
+    build:
+      context: ../services/chat-service
+      dockerfile: Dockerfile
+    env_file:
+      - env/.env.dev
+    ports:
+      - "8003:8000"
+    volumes:
+      - ../services/chat-service:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ../services/notification-service
+      dockerfile: Dockerfile
+    env_file:
+      - env/.env.dev
+    ports:
+      - "8004:8000"
+    volumes:
+      - ../services/notification-service:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  celery-worker:
+    build:
+      context: ../services/notification-service
+      dockerfile: Dockerfile
+    env_file:
+      - env/.env.dev
+    volumes:
+      - ../services/notification-service:/app
+    depends_on:
+      - notification-service
+      - rabbitmq
+    command: celery -A config.celery worker --loglevel=info
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - auth-service
+      - stream-service
+      - chat-service
+      - notification-service

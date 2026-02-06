@@ -1,0 +1,30 @@
+replicaCount: 2
+
+image:
+  repository: streamify
+  pullPolicy: IfNotPresent
+
+services:
+  auth:
+    enabled: true
+    port: 8000
+  stream:
+    enabled: true
+    port: 8000
+  chat:
+    enabled: true
+    port: 8000
+  notification:
+    enabled: true
+    port: 8000
+
+postgresql:
+  enabled: true
+  auth:
+    database: streamify
+
+redis:
+  enabled: true
+
+rabbitmq:
+  enabled: true

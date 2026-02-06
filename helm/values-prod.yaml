@@ -1,0 +1,33 @@
+replicaCount: 3
+
+image:
+  repository: streamify
+  pullPolicy: IfNotPresent
+
+services:
+  auth:
+    enabled: true
+    port: 8000
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  stream:
+    enabled: true
+    port: 8000
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+  chat:
+    enabled: true
+    port: 8000
+  notification:
+    enabled: true
+    port: 8000

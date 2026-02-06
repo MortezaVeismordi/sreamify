@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package notification;
+
+service NotificationService {
+  rpc SendNotification(NotificationRequest) returns (NotificationResponse);
+  rpc GetNotifications(GetRequest) returns (GetResponse);
+}
+
+message NotificationRequest {
+  int32 user_id = 1;
+  string type = 2;
+  string title = 3;
+  string message = 4;
+}
+
+message NotificationResponse {
+  bool success = 1;
+  string message_id = 2;
+}
+
+message GetRequest {
+  int32 user_id = 1;
+}
+
+message GetResponse {
+  repeated Notification notifications = 1;
+}
+
+message Notification {
+  int32 id = 1;
+  string title = 2;
+  string message = 3;
+  string type = 4;
+  bool is_read = 5;
+}
