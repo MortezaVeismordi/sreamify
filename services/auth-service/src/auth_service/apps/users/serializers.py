@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User
-from ..utils.validators import (
+from auth_service.utils.validators import (
     validate_email,
 )  # We'll see if this path is valid, assuming yes from previous file
 

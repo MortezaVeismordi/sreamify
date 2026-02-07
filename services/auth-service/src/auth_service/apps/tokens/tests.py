@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from ..utils.jwt_handler import generate_refresh_token
+from auth_service.utils.jwt_handler import generate_refresh_token
 
 User = get_user_model()
 

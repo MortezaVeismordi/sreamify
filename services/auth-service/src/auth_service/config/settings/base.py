@@ -21,8 +21,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
-    "apps.users",
-    "apps.tokens",
+    "auth_service.apps.users",
+    "auth_service.apps.tokens",
 ]
 
 MIDDLEWARE = [
@@ -34,10 +34,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "middleware.error_handler.ErrorHandlerMiddleware",
+    "auth_service.middleware.error_handler.ErrorHandlerMiddleware",
 ]
 
-ROOT_URLCONF = "config.urls"
+ROOT_URLCONF = "auth_service.config.urls"
 
 TEMPLATES = [
     {
@@ -55,7 +55,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "config.wsgi.application"
+WSGI_APPLICATION = "auth_service.config.wsgi.application"
 
 DATABASES = {
     "default": {

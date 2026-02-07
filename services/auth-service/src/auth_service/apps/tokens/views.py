@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from .models import RefreshToken
 from .serializers import TokenRefreshSerializer, TokenVerifySerializer
-from ..utils.jwt_handler import generate_access_token, verify_token
+from auth_service.utils.jwt_handler import generate_access_token, verify_token
 
 User = get_user_model()
 
