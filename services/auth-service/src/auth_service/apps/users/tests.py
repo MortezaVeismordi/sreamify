@@ -19,13 +19,19 @@ class UserTestCase(TestCase):
         }
 
     def test_user_registration(self):
+        # Remove password_confirm if serializer doesn't strictly require it in the dict (assuming it does)
         response = self.client.post("/api/users/register/", self.user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("access_token", response.data)
-        self.assertIn("refresh_token", response.data)
+        self.assertNotIn("refresh_token", response.data)
+        self.assertIn("refresh_token", response.cookies)
 
     def test_user_login(self):
-        User.objects.create_user(**self.user_data)
+        # Remove password_confirm for create_user as it's not a model field
+        data = self.user_data.copy()
+        data.pop("password_confirm")
+        User.objects.create_user(**data)
+        
         response = self.client.post(
             "/api/users/login/",
             {
@@ -35,3 +41,17 @@ class UserTestCase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access_token", response.data)
+        self.assertIn("refresh_token", response.cookies)
+
+    def test_user_logout(self):
+        data = self.user_data.copy()
+        data.pop("password_confirm")
+        user = User.objects.create_user(**data)
+        
+        # Manually set cookie to simulate logged in state
+        self.client.cookies["refresh_token"] = "some_token"
+        response = self.client.post("/api/users/logout/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Check if cookie is cleared (expiry set to past)
+        self.assertEqual(response.cookies["refresh_token"].value, "")
