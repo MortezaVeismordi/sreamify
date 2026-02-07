@@ -100,6 +100,14 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL", "redis://localhost:6379/1"),
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+    }
+}
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -108,3 +116,11 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# WebSocket JWT auth: verify token with auth-service (only access_token accepted)
+AUTH_SERVICE_VERIFY_URL = os.getenv(
+    "AUTH_SERVICE_VERIFY_URL",
+    "http://auth-service:8000/api/tokens/verify-bearer/",
+)
+# Cache verify result in Redis (seconds); 0 = disable
+WS_JWT_VERIFY_CACHE_TTL = int(os.getenv("WS_JWT_VERIFY_CACHE_TTL", "60"))

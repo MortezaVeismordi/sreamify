@@ -85,3 +85,51 @@ def verify_token_view(request):
         except ValueError as e:
             return Response({"valid": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+@throttle_classes([ScopedRateThrottle])
+def verify_bearer_view(request):
+    """
+    Verify JWT from Authorization: Bearer <token> or body {"token": "..."}.
+    Only accepts access tokens. Returns user info for WebSocket/auth delegation.
+    """
+    request.throttle_scope = "auth"
+    token = None
+    auth_header = request.META.get("HTTP_AUTHORIZATION")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+    if not token and request.data:
+        token = request.data.get("token") or request.GET.get("token")
+    if not token:
+        return Response(
+            {"error": "Token required (Authorization: Bearer <token> or ?token= or body)"},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+    try:
+        payload = verify_token(token)
+        if payload.get("type") != "access":
+            return Response(
+                {"error": "Only access tokens are accepted"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        user_id = payload.get("user_id")
+        if not user_id:
+            return Response({"error": "Invalid token payload"}, status=status.HTTP_401_UNAUTHORIZED)
+        user = User.objects.filter(pk=user_id).first()
+        if not user or not user.is_active:
+            return Response({"error": "User not found or inactive"}, status=status.HTTP_403_FORBIDDEN)
+        return Response(
+            {
+                "valid": True,
+                "user_id": user.id,
+                "email": user.email,
+                "username": getattr(user, "username", None) or user.email,
+                "is_staff": user.is_staff,
+                "is_streamer": getattr(user, "is_streamer", False),
+            },
+            status=status.HTTP_200_OK,
+        )
+    except ValueError as e:
+        return Response({"valid": False, "error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)

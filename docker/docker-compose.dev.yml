@@ -34,6 +34,8 @@ services:
     env_file:
       - env/.env.common
       - env/.env.dev
+    environment:
+      AUTH_SERVICE_VERIFY_URL: http://auth-service:8000/api/tokens/verify-bearer/
     volumes:
       - ../services/chat-service/src:/app
       - ../services/chat-service/entrypoint.sh:/app/entrypoint.sh

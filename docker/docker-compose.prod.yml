@@ -38,6 +38,8 @@ services:
     env_file:
       - env/.env.common
       - env/.env.prod
+    environment:
+      AUTH_SERVICE_VERIFY_URL: http://auth-service:8000/api/tokens/verify-bearer/
     deploy:
       replicas: 2
       restart_policy:
