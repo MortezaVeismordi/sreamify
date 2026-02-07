@@ -12,49 +12,46 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def register(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             return Response(
                 {
-                    'user': UserSerializer(user).data,
-                    'access_token': generate_access_token(user.id),
-                    'refresh_token': generate_refresh_token(user.id),
+                    "user": UserSerializer(user).data,
+                    "access_token": generate_access_token(user.id),
+                    "refresh_token": generate_refresh_token(user.id),
                 },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_201_CREATED,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
-            password = serializer.validated_data['password']
+            email = serializer.validated_data["email"]
+            password = serializer.validated_data["password"]
             user = authenticate(request, username=email, password=password)
             if user:
                 return Response(
                     {
-                        'user': UserSerializer(user).data,
-                        'access_token': generate_access_token(user.id),
-                        'refresh_token': generate_refresh_token(user.id),
+                        "user": UserSerializer(user).data,
+                        "access_token": generate_access_token(user.id),
+                        "refresh_token": generate_refresh_token(user.id),
                     },
-                    status=status.HTTP_200_OK
+                    status=status.HTTP_200_OK,
                 )
-            return Response(
-                {'error': 'Invalid credentials'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get', 'put'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["get", "put"], permission_classes=[IsAuthenticated])
     def me(self, request):
-        if request.method == 'GET':
+        if request.method == "GET":
             serializer = UserSerializer(request.user)
             return Response(serializer.data)
-        elif request.method == 'PUT':
+        elif request.method == "PUT":
             serializer = UserSerializer(request.user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()

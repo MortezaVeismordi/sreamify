@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 class ErrorHandlerMiddleware:
     """Error handler middleware for Streamify services."""
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -16,12 +17,6 @@ class ErrorHandlerMiddleware:
 
     def process_exception(self, request, exception):
         if isinstance(exception, APIException):
-            return JsonResponse(
-                {'error': exception.detail},
-                status=exception.status_code
-            )
-        logger.exception('Unhandled exception')
-        return JsonResponse(
-            {'error': 'Internal server error'},
-            status=500
-        )
+            return JsonResponse({"error": exception.detail}, status=exception.status_code)
+        logger.exception("Unhandled exception")
+        return JsonResponse({"error": "Internal server error"}, status=500)

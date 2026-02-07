@@ -9,11 +9,14 @@ class NotificationTestCase(TestCase):
         self.client = APIClient()
 
     def test_create_notification(self):
-        response = self.client.post('/api/notifications/', {
-            'user_id': 1,
-            'notification_type': 'email',
-            'title': 'Test Notification',
-            'message': 'Test message',
-        })
+        response = self.client.post(
+            "/api/notifications/",
+            {
+                "user_id": 1,
+                "notification_type": "email",
+                "title": "Test Notification",
+                "message": "Test message",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Notification.objects.count(), 1)

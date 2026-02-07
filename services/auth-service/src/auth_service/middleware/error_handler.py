@@ -16,17 +16,8 @@ class ErrorHandlerMiddleware:
 
     def process_exception(self, request, exception):
         if isinstance(exception, APIException):
-            return JsonResponse(
-                {'error': exception.detail},
-                status=exception.status_code
-            )
+            return JsonResponse({"error": exception.detail}, status=exception.status_code)
         elif isinstance(exception, ValidationError):
-            return JsonResponse(
-                {'error': str(exception)},
-                status=400
-            )
-        logger.exception('Unhandled exception')
-        return JsonResponse(
-            {'error': 'Internal server error'},
-            status=500
-        )
+            return JsonResponse({"error": str(exception)}, status=400)
+        logger.exception("Unhandled exception")
+        return JsonResponse({"error": "Internal server error"}, status=500)

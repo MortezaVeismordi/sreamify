@@ -10,9 +10,9 @@ class Category(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'categories'
-        ordering = ['name']
-        verbose_name_plural = 'categories'
+        db_table = "categories"
+        ordering = ["name"]
+        verbose_name_plural = "categories"
 
     def __str__(self):
         return self.name

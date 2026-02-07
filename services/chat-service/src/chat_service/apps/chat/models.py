@@ -8,23 +8,23 @@ class ChatRoom(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'chat_rooms'
-        ordering = ['-created_at']
+        db_table = "chat_rooms"
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.name
 
 
 class Message(models.Model):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages")
     user_id = models.IntegerField()
     username = models.CharField(max_length=150)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'messages'
-        ordering = ['created_at']
+        db_table = "messages"
+        ordering = ["created_at"]
 
     def __str__(self):
-        return f'{self.username}: {self.content[:50]}'
+        return f"{self.username}: {self.content[:50]}"

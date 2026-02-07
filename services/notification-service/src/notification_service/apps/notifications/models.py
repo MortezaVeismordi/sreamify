@@ -3,9 +3,9 @@ from django.db import models
 
 class Notification(models.Model):
     TYPE_CHOICES = [
-        ('email', 'Email'),
-        ('push', 'Push'),
-        ('in_app', 'In-App'),
+        ("email", "Email"),
+        ("push", "Push"),
+        ("in_app", "In-App"),
     ]
 
     user_id = models.IntegerField()
@@ -17,14 +17,15 @@ class Notification(models.Model):
     read_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'notifications'
-        ordering = ['-created_at']
+        db_table = "notifications"
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f'{self.title} - {self.user_id}'
+        return f"{self.title} - {self.user_id}"
 
     def mark_as_read(self):
         from django.utils import timezone
+
         self.is_read = True
         self.read_at = timezone.now()
         self.save()

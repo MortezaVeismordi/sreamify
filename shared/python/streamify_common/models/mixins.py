@@ -3,6 +3,7 @@ from django.db import models
 
 class TimestampMixin(models.Model):
     """Mixin for timestamp fields."""
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -12,6 +13,7 @@ class TimestampMixin(models.Model):
 
 class SoftDeleteMixin(models.Model):
     """Mixin for soft delete functionality."""
+
     deleted_at = models.DateTimeField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
 
@@ -20,6 +22,7 @@ class SoftDeleteMixin(models.Model):
 
     def soft_delete(self):
         from django.utils import timezone
+
         self.is_deleted = True
         self.deleted_at = timezone.now()
         self.save()

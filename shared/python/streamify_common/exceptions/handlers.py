@@ -8,9 +8,9 @@ def custom_exception_handler(exc, context):
 
     if isinstance(exc, StreamifyException):
         custom_response_data = {
-            'error': {
-                'code': exc.default_code,
-                'message': exc.default_detail,
+            "error": {
+                "code": exc.default_code,
+                "message": exc.default_detail,
             }
         }
         response.data = custom_response_data

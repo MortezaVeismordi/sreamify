@@ -14,12 +14,12 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Notification.objects.all()
-        user_id = self.request.query_params.get('user_id', None)
-        is_read = self.request.query_params.get('is_read', None)
+        user_id = self.request.query_params.get("user_id", None)
+        is_read = self.request.query_params.get("is_read", None)
         if user_id:
             queryset = queryset.filter(user_id=user_id)
         if is_read is not None:
-            queryset = queryset.filter(is_read=is_read.lower() == 'true')
+            queryset = queryset.filter(is_read=is_read.lower() == "true")
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -28,15 +28,15 @@ class NotificationViewSet(viewsets.ModelViewSet):
         notification = serializer.save()
 
         # Send notification asynchronously
-        if notification.notification_type == 'email':
+        if notification.notification_type == "email":
             send_email_notification.delay(notification.id)
-        elif notification.notification_type == 'push':
+        elif notification.notification_type == "push":
             send_push_notification.delay(notification.id)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=["put"])
     def read(self, request, pk=None):
         notification = self.get_object()
         notification.mark_as_read()

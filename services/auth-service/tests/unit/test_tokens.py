@@ -13,5 +13,5 @@ def test_generate_access_token(user):
 def test_verify_token(user):
     token = generate_access_token(user.id)
     payload = verify_token(token)
-    assert payload['user_id'] == user.id
-    assert payload['type'] == 'access'
+    assert payload["user_id"] == user.id
+    assert payload["type"] == "access"

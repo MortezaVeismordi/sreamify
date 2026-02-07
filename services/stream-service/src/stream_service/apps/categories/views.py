@@ -8,4 +8,4 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
+    lookup_field = "slug"

@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User
-from ..utils.validators import validate_email  # We'll see if this path is valid, assuming yes from previous file
+from ..utils.validators import (
+    validate_email,
+)  # We'll see if this path is valid, assuming yes from previous file
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -10,23 +12,23 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'password', 'password_confirm', 'phone')
+        fields = ("email", "first_name", "last_name", "password", "password_confirm", "phone")
         # Removed 'username', added 'phone'
 
     def validate_email(self, value):
         # We can keep custom validator or rely on standard email field validation + uniqueness
         # validate_email(value) # Assuming this utility exists, keeping it safe
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('User with this email already exists')
+            raise serializers.ValidationError("User with this email already exists")
         return value
 
     def validate(self, attrs):
-        if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError({'password': 'Passwords do not match'})
+        if attrs["password"] != attrs["password_confirm"]:
+            raise serializers.ValidationError({"password": "Passwords do not match"})
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('password_confirm')
+        validated_data.pop("password_confirm")
         user = User.objects.create_user(**validated_data)
         return user
 
@@ -34,8 +36,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'phone', 'is_streamer', 'bio', 'profile_picture', 'is_active', 'date_joined')
-        read_only_fields = ('id', 'email', 'is_streamer', 'is_active', 'date_joined')
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "is_streamer",
+            "bio",
+            "profile_picture",
+            "is_active",
+            "date_joined",
+        )
+        read_only_fields = ("id", "email", "is_streamer", "is_active", "date_joined")
         # Removed username, added profile fields
 
 
